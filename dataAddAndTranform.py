@@ -24,42 +24,89 @@ fake = Faker()
 
 n = len(df)
 
-dataAbastecimento = [fake.date_between(start_date='+10d', end_date='+100d') for _ in range(n)]
 dataValidade = [fake.date_between(start_date='+10d', end_date='+200d') for _ in range(n)]
 
-df["data_chegada_produtos"] = dataAbastecimento
 df["data_validade_produtos"] = dataValidade
 # %%
 
-df.head()
+
+df
+
 # %%
+#transforma a coluna de preço para float
+#gera uma coluna com o valor de preço de custo
 
-#cria numeros entre 1 a 50
-import random
-def random_numbers(n):
-    return [random.randint(1, 50) for _ in range(n)]
+df["preço"] = df["preço"].str.replace(",", ".").astype(float)
+
+df["preço_de_custo"] = (df["preço"] * 0.6).round(2)
 
 
-df["quantidade_produtos"] = random_numbers(n)
+df["preço"].dtype
+df["preço_de_custo"].dtype
 
-df.head()
+
+df
+
 # %% 
+#cria numeros entre 1 a 100
 
-#cria numeros entre 60 a 100
-def random_numbers(n):
-    return [random.randint(60, 100) for _ in range(n)]
 
-df["limite_estoque"] = random_numbers(n)
-df.head()
 # %%
 
-#cria numeros entre 1 a 100
-def random_numbers(n):
-    return [random.randint(1, 100) for _ in range(n)]
+df
+# %%
 
-df["qtd_vendas_1mes_anterior"] = random_numbers(n)
-df["qtd_vendas_2mes_anterior"] = random_numbers(n)
-df["qtd_vendas_3mes_anterior"] = random_numbers(n)
-df.head()
+df.to_csv('produtos.csv', index=False, encoding='utf-8')
+# %%
 
+# Limpa os nomes dos produtos
+
+import re
+import unicodedata
+
+def limpar_nome(nome):
+    # Remove acentuação
+    nome = unicodedata.normalize('NFKD', nome).encode('ASCII', 'ignore').decode('utf-8')
+
+    # Substitui "biscoito" por "bolacha" (case-insensitive)
+    nome = re.sub(r'\bbiscoito\b', 'Bolacha', nome, flags=re.IGNORECASE)
+
+    # Remove a palavra "kit" e números sozinhos
+    nome = re.sub(r'\bkit\b', '', nome, flags=re.IGNORECASE)
+    nome = re.sub(r'\b\d+\b', '', nome)
+
+    # Remove pesos/unidades (ex: 120g, 1kg, 6un, 230ml)
+    nome = re.sub(r'\d+\s*(g|kg|ml|l|un|unidades)', '', nome, flags=re.IGNORECASE)
+
+    # Remover duplicação da palavra "bolacha"
+    nome = re.sub(r'\b(bolacha)(\s+\1)+\b', r'\1', nome, flags=re.IGNORECASE)
+
+    # Remove espaços duplicados e tira espaços laterais
+    nome = re.sub(r'\s+', ' ', nome).strip()
+
+    # Remove hifen
+    nome = re.sub(r'-', ' ', nome)
+
+    return nome
+
+df['nome_limpo'] = df['nome'].apply(limpar_nome)
+
+# %%
+df
+
+# %%
+df["preço"] = df["preço"].map("{:.2f}".format).str.replace(".", ",")
+df["preço_de_custo"] = df["preço_de_custo"].map("{:.2f}".format).str.replace(".", ",")
+
+
+df['preço'].dtype
+# %%
+
+#busca nomes que sao iguais
+df[df['nome_limpo'].duplicated(keep=False)]
+# %%
+
+#exportando csv final!
+
+df.to_csv('produtosETL.csv', index=False, encoding='utf-8')
 # %%

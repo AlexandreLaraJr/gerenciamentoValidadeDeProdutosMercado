@@ -3,7 +3,6 @@
 # inicia imports/bibliotecas e Selenium
 
 def getSalgadinhos():
-
     from selenium import webdriver
     from selenium.webdriver.chrome.service import Service
     from selenium.webdriver.chrome.options import Options
@@ -12,6 +11,15 @@ def getSalgadinhos():
     from selenium.webdriver.support import expected_conditions as EC
     from bs4 import BeautifulSoup
     import pandas as pd
+    import random
+    from datetime import datetime, timedelta
+
+    def gerar_data_aleatoria():
+            inicio = datetime(2025, 1, 1)
+            fim = datetime(2025, 5, 16)
+            delta = fim - inicio
+            dias = random.randint(0, delta.days)
+            return (inicio + timedelta(days=dias)).date()
 
     options = Options()
     service = Service()
@@ -41,22 +49,25 @@ def getSalgadinhos():
     fractions = soup.find_all('span', class_='andes-money-amount__fraction')
     cents = soup.find_all('span', class_='andes-money-amount__cents')
 
+    categoriaProduto = 'Salgadinhos'
+    vendas = []
 
-    salgadinhosList = []
-    salgadinhosPriceList = []    
-
-    #da append dos nomes e preços nas listas
-
+    # para cada produto, gera entre 1 a 20 vendas com data aleatória
     for title, frac, cent in zip(titles, fractions, cents):
-        # print(title.get_text(strip=True))
-        salgadinhosList.append(title.get_text(strip=True))
-        salgadinhosPriceList.append(frac.get_text(strip=True) + ',' + cent.get_text(strip=True))
+        nome = title.get_text(strip=True)
+        preco = frac.get_text(strip=True) + ',' + cent.get_text(strip=True)
+        num_vendas = random.randint(1, 20)
+
+        for _ in range(num_vendas):
+            vendas.append({
+                'nome': nome,
+                'preço': preco,
+                'categoriaProduto': categoriaProduto,
+                'data_venda': gerar_data_aleatoria()
+            })
 
     driver.quit()
 
-    df = pd.DataFrame({
-        'nome': salgadinhosList,
-        'preço': salgadinhosPriceList
-    })
+    df = pd.DataFrame(vendas)
 
     return df
