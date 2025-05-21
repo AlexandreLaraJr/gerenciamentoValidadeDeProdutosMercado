@@ -46,17 +46,16 @@ df["preço_de_custo"].dtype
 
 
 df
-
-# %% 
-#cria numeros entre 1 a 100
-
-
 # %%
 
 df
 # %%
+import random
+def random_numbers(n):
+    return [random.randint(1, 20) for _ in range(n)]
 
-df.to_csv('produtos.csv', index=False, encoding='utf-8')
+
+df["quantidade_vendida"] = random_numbers(n)
 # %%
 
 # Limpa os nomes dos produtos
